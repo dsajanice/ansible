@@ -13,7 +13,7 @@ DOCUMENTATION = '''
 ---
 module: azure_rm_iotedge
 
-short_description: This module is used to manage an Azure IoT Edge device from the cloud
+short_description: This module is used to manage an Azure IoT Edge device
 
 version_added: "1.0"
 
@@ -23,17 +23,17 @@ description:
 options:
     version:
         description:
-            - Retrieves the version of iotedged on the device
+            - Retrieves the version of Azure IoT Edge runtime components on the device
         required: false
         type: bool
         default: 'no'
     update_runtime:
         description:
-            - Updates iotedged runtime components to latest or specified version
+            - Updates Azure IoT Edge runtime components to latest or specified version
         required: false
         suboptions:
           description:
-            - Version of iotedged runtime components to update to
+            - Version of Azure IoT Edge runtime components to update to
           version: str
           required: false
           default: 'latest' 
@@ -46,28 +46,28 @@ author:
 '''
 
 EXAMPLES = '''
-# Get installed iotedged version from device
+# Get installed Azure IoT Edge runtime version from device
 - name: Get installed iotedged version
   azure_rm_iotedge:
     version: yes
 
-# Update iotedged runtime components to latest version
+# Update Azure IoT Edge runtime components to latest version
 - name: Update iotedged runtime components to latest version
   azure_rm_iotedge:
     update_runtime:
 
-# Update iotedged runtime components to 1.0.6
+# Update Azure IoT Edge runtime components to 1.0.6
 - name: Update iotedged runtime components to 1.0.6
   azure_rm_iotedge:
     update_runtime:
       version: "1.0.6-1"
 
-# Conditional update of iotedged runtime components
-- name: Get current version of iotedge 
+# Conditional update of Azure IoT Edge runtime components
+- name: Get current version of Azure IoT Edge runtime components 
   azure_rm_iotedge:
     version: yes
   register: version_info 
-- name: Update iotedged runtime components to 1.0.6 if current version is different
+- name: Update Azure IoT Edge runtime components to 1.0.6 if current version is different
     update_runtime:
       version: "1.0.6-1"
   when: version_info.version != "1.0.6"
@@ -119,8 +119,8 @@ def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
         version=dict(type='bool', default=False),
-        update_runtime=dict(type='dict', options=dict(
-            version=dict(type='str', default='latest'),
+        update_runtime=dict(type='dict', options=dict( 
+          version=dict(type='str', default='latest')
         ))
     )
 
@@ -149,11 +149,6 @@ def run_module():
     if module.check_mode:
         return result
 
-    # manipulate or modify the state as needed (this is going to be the
-    # part where your module will do what it needs to do)
-    #result['original_message'] = module.params['name']
-    #result['message'] = 'goodbye'
-
     # use whatever logic you need to determine whether or not this module
     # made any modifications to your target
     if module.params['version']:
@@ -163,16 +158,10 @@ def run_module():
       result['version'] = version
 
     if module.params['update_runtime']:
-      version = module.params['update_runtime'].get('version')
+      version = module.params['update_runtime']['version']
       cmd = UpdateRuntimeCommand(version)
       cmd.execute()
       result['changed'] = True
-
-    # during the execution of the module, if there is an exception or a
-    # conditional state that effectively causes a failure, run
-    # AnsibleModule.fail_json() to pass in the message and the result
-    #if module.params['name'] == 'fail me':
-    #    module.fail_json(msg='You requested this to fail', **result)
 
     # in the event of a successful module execution, you will want to
     # simple AnsibleModule.exit_json(), passing the key/value results
