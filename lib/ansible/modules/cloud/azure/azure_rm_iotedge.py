@@ -24,6 +24,19 @@ options:
     version:
         description:
             - Retrieves the version of iotedged on the device
+        required: false
+        type: bool
+        default: 'no'
+    update_runtime:
+        description:
+            - Updates iotedged runtime components to latest or specified version
+        required: false
+        suboptions:
+          description:
+            - Version of iotedged runtime components to update to
+          version: str
+          required: false
+          default: 'latest' 
 
 extends_documentation_fragment:
     - azure
@@ -37,6 +50,27 @@ EXAMPLES = '''
 - name: Get installed iotedged version
   azure_rm_iotedge:
     version: yes
+
+# Update iotedged runtime components to latest
+- name: Update iotedged runtime components
+  azure_rm_iotedge:
+    update_runtime:
+
+# Update iotedged runtime components to 1.0.6
+- name: Update iotedged runtime components to 1.0.6
+  azure_rm_iotedge:
+    update_runtime:
+      version: 1.0.6
+
+# Conditional update of iotedged runtime components
+- name: Update iotedged runtime components to 1.0.6 if current version is different
+  azure_rm_iotedge:
+    version: yes
+  register: version_info 
+    update_runtime:
+      version: 1.0.6
+  when: version_info.version != "1.0.6"
+
 '''
 
 RETURN = '''
@@ -61,10 +95,31 @@ class VersionCommand(object):
         print(stdout)
         return stdout.split()[1]
 
+class UpdateRuntimeCommand(object):
+    def __init__(self, desired):
+        self.desired = desired
+        return
+
+    def execute(self):
+        print('Updating Azure IoT Edge runtime components to {}'.format(self.desired))
+        if self.desired == 'latest':
+          out = subprocess.Popen(['apt-get', 'install', '-y', 'iotedge']),
+                  stdout=subprocess.PIPE,
+                  stderr=subprocess.STDOUT)
+        else:
+          package = 'iotedge=' + self.desired
+          out = subprocess.Popen(['apt-get', 'install', '-y', '--allow-downgrades', package]),
+                  stdout=subprocess.PIPE,
+                  stderr=subprocess.STDOUT)
+        return
+
 def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
         version=dict(type='bool', default=False),
+        update_runtime=dict(type='list', elements='dict', options=dict(
+            version=dict(type='str', default='latest'),
+        ))
     )
 
     # seed the result dict in the object
@@ -74,6 +129,7 @@ def run_module():
     # for consumption, for example, in a subsequent task
     result = dict(
         changed=False,
+        version=''
     )
 
     # the AnsibleModule object will be our abstraction working with Ansible
@@ -103,6 +159,11 @@ def run_module():
       version = cmd.execute()
       result['changed'] = False
       result['version'] = version
+
+    if module.params['update_runtime']:
+      version = module.params['update_runtime'][0].get('version')
+      cmd = UpdateRuntimeCommand(version)
+      cmd.execute()
 
     # during the execution of the module, if there is an exception or a
     # conditional state that effectively causes a failure, run
