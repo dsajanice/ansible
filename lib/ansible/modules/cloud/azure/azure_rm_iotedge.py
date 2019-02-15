@@ -103,21 +103,22 @@ class UpdateRuntimeCommand(object):
     def execute(self):
         print('Updating Azure IoT Edge runtime components to {}'.format(self.desired))
         if self.desired == 'latest':
-          out = subprocess.Popen(['apt-get', 'install', '-y', 'iotedge']),
+          out = subprocess.Popen(['apt-get', 'install', '-y', 'iotedge'],
                   stdout=subprocess.PIPE,
                   stderr=subprocess.STDOUT)
         else:
           package = 'iotedge=' + self.desired
-          out = subprocess.Popen(['apt-get', 'install', '-y', '--allow-downgrades', package]),
+          out = subprocess.Popen(['apt-get', 'install', '-y', '--allow-downgrades', package],
                   stdout=subprocess.PIPE,
                   stderr=subprocess.STDOUT)
+        stdout, stderr = out.communicate()
         return
 
 def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
         version=dict(type='bool', default=False),
-        update_runtime=dict(type='list', elements='dict', options=dict(
+        update_runtime=dict(type='dict', options=dict(
             version=dict(type='str', default='latest'),
         ))
     )
@@ -161,7 +162,7 @@ def run_module():
       result['version'] = version
 
     if module.params['update_runtime']:
-      version = module.params['update_runtime'][0].get('version')
+      version = module.params['update_runtime'].get('version')
       cmd = UpdateRuntimeCommand(version)
       cmd.execute()
 
