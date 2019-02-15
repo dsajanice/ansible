@@ -51,8 +51,8 @@ EXAMPLES = '''
   azure_rm_iotedge:
     version: yes
 
-# Update iotedged runtime components to latest
-- name: Update iotedged runtime components
+# Update iotedged runtime components to latest version
+- name: Update iotedged runtime components to latest version
   azure_rm_iotedge:
     update_runtime:
 
@@ -63,10 +63,11 @@ EXAMPLES = '''
       version: "1.0.6-1"
 
 # Conditional update of iotedged runtime components
-- name: Update iotedged runtime components to 1.0.6 if current version is different
+- name: Get current version of iotedge 
   azure_rm_iotedge:
     version: yes
   register: version_info 
+- name: Update iotedged runtime components to 1.0.6 if current version is different
     update_runtime:
       version: "1.0.6-1"
   when: version_info.version != "1.0.6"
@@ -165,6 +166,7 @@ def run_module():
       version = module.params['update_runtime'].get('version')
       cmd = UpdateRuntimeCommand(version)
       cmd.execute()
+      result['changed'] = True
 
     # during the execution of the module, if there is an exception or a
     # conditional state that effectively causes a failure, run
