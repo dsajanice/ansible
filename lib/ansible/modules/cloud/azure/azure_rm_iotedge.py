@@ -60,7 +60,7 @@ EXAMPLES = '''
 - name: Update iotedged runtime components to 1.0.6
   azure_rm_iotedge:
     update_runtime:
-      version: 1.0.6
+      version: "1.0.6-1"
 
 # Conditional update of iotedged runtime components
 - name: Update iotedged runtime components to 1.0.6 if current version is different
@@ -68,7 +68,7 @@ EXAMPLES = '''
     version: yes
   register: version_info 
     update_runtime:
-      version: 1.0.6
+      version: "1.0.6-1"
   when: version_info.version != "1.0.6"
 
 '''
