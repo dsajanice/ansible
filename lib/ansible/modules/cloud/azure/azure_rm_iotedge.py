@@ -55,6 +55,7 @@ EXAMPLES = '''
 - name: Update iotedged runtime components to latest version
   azure_rm_iotedge:
     update_runtime:
+      version: "latest"
 
 # Update Azure IoT Edge runtime components to 1.0.6
 - name: Update iotedged runtime components to 1.0.6
