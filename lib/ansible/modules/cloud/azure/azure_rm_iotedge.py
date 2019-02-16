@@ -102,18 +102,24 @@ class UpdateRuntimeCommand(object):
         self.desired = desired
         return
 
-    def execute(self):
-        print('Updating Azure IoT Edge runtime components to {}'.format(self.desired))
+    def construct_update(self, component):
         if self.desired == 'latest':
-          out = subprocess.Popen(['apt-get', 'install', '-y', 'iotedge'],
+          out = subprocess.Popen(['apt-get', 'install', '-y', component],
                   stdout=subprocess.PIPE,
                   stderr=subprocess.STDOUT)
         else:
-          package = 'iotedge=' + self.desired
+          package = component + '=' + self.desired
           out = subprocess.Popen(['apt-get', 'install', '-y', '--allow-downgrades', package],
                   stdout=subprocess.PIPE,
                   stderr=subprocess.STDOUT)
-        stdout, stderr = out.communicate()
+        return out
+
+    def execute(self):
+        print('Updating Azure IoT Edge runtime components to {}'.format(self.desired))
+        cmd = self.construct_update('iotedge')
+        stdout, stderr = cmd.communicate()
+        cmd = self.construct_update('libiothsm-std')
+        stdout, stderr = cmd.communicate()
         return
 
 def run_module():
